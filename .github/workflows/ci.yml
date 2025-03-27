@@ -22,11 +22,13 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --no-interaction --prefer-dist
 
-      - name: Install Node.js dependencies
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: npm install
+
+      - name: Install Node.js dependencies
+        run: npm install
 
       - name: Set up SQLite database
         run: |
@@ -38,7 +40,6 @@ jobs:
           echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
           echo "SESSION_DRIVER=array" >> .env
           echo "CACHE_DRIVER=array" >> .env
-          echo "AUTH_GUARD=web" >> .env  # Explicitly set web guard
 
       - name: Ensure storage & cache directories are writable
         run: |
@@ -48,10 +49,10 @@ jobs:
         run: |
           php artisan config:clear
           php artisan migrate:fresh --seed
-          php artisan breeze:install blade  # Ensure Breeze is installed
+          php artisan breeze:install react
 
-      - name: Wait for Laravel to boot
-        run: sleep 3
+      - name: Compile frontend assets
+        run: npm run build
 
       - name: Run PHPUnit tests
         run: php artisan test
