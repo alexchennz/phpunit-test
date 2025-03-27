@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    nodejs \
-    npm
+    wget
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -25,8 +24,13 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Upgrade npm to latest version
-RUN npm install -g npm@latest
+# Install Node.js and npm (using version 20.x)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Verify Node.js and npm versions
+RUN node --version
+RUN npm --version
 
 # Copy existing application directory contents
 COPY . /var/www/html
@@ -34,11 +38,15 @@ COPY . /var/www/html
 # Install Composer dependencies
 RUN composer install --no-interaction
 
-# Install npm dependencies
-RUN npm install
+# Update npm
+RUN npm install -g npm@latest
 
-# Downgrade Vite if necessary
-RUN npm install vite@^5.0.0
+# Install npm dependencies with verbose output
+RUN npm install --verbose
+
+# Verify installed packages
+RUN npm list vite
+RUN npm list @vitejs/plugin-react
 
 # Build frontend assets
 RUN npm run build
