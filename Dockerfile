@@ -42,7 +42,7 @@ RUN composer install --no-interaction
 RUN npm install
 
 # Generate key
-RUN php artisan key:generate
+RUN php artisan key:generate --force
 
 # Compile frontend assets
 RUN npm run build
