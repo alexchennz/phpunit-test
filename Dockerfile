@@ -24,7 +24,7 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Node.js and npm (using version 20.x)
+# Install Node.js and npm (using LTS version)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
@@ -38,17 +38,13 @@ COPY . /var/www/html
 # Install Composer dependencies
 RUN composer install --no-interaction
 
-# Update npm
-RUN npm install -g npm@latest
+# Install npm dependencies
+RUN npm install
 
-# Install npm dependencies with verbose output
-RUN npm install --verbose
+# Generate key
+RUN php artisan key:generate
 
-# Verify installed packages
-RUN npm list vite
-RUN npm list @vitejs/plugin-react
-
-# Build frontend assets
+# Compile frontend assets
 RUN npm run build
 
 # Configure Apache document root
