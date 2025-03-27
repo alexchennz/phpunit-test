@@ -8,22 +8,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: test_pass
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root --password=root"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -32,7 +16,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, pdo, pdo_mysql
+          extensions: mbstring, pdo, sqlite3
           coverage: none
 
       - name: Install Composer dependencies
@@ -44,14 +28,14 @@ jobs:
           node-version: '18'
       - run: npm install
 
-      - name: Set up environment
+      - name: Set up SQLite database
         run: |
+          mkdir -p database
+          touch database/database.sqlite
           cp .env.example .env
           php artisan key:generate
-          sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
-          sed -i 's/DB_DATABASE=laravel/DB_DATABASE=test_db/' .env
-          sed -i 's/DB_USERNAME=root/DB_USERNAME=test_user/' .env
-          sed -i 's/DB_PASSWORD=/DB_PASSWORD=test_pass/' .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
 
       - name: Configure database
         run: |
@@ -60,4 +44,3 @@ jobs:
 
       - name: Run PHPUnit tests
         run: php artisan test
-
