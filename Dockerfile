@@ -34,7 +34,7 @@ RUN node --version
 RUN npm --version
 
 # Copy existing application directory contents
-COPY . /var/www/html
+COPY . .
 
 # Install Composer dependencies
 RUN composer install --no-progress --no-interaction --prefer-dist
