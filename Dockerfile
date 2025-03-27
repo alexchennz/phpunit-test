@@ -25,8 +25,9 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install Node.js and npm (using LTS version)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+RUN wget https://nodejs.org/dist/v22.9.0/node-v22.9.0-linux-x64.tar.xz \
+    && tar -xf node-v22.9.0-linux-x64.tar.xz -C /usr/local --strip-components=1 \
+    && rm node-v22.9.0-linux-x64.tar.xz
 
 # Verify Node.js and npm versions
 RUN node --version
