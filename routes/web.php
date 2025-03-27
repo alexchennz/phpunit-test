@@ -15,8 +15,6 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/api/items', [ItemController::class, 'index']);
-
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
