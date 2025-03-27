@@ -38,15 +38,18 @@ jobs:
           echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
           echo "SESSION_DRIVER=array" >> .env
           echo "CACHE_DRIVER=array" >> .env
+          echo "AUTH_GUARD=web" >> .env  # Explicitly set web guard
 
       - name: Ensure storage & cache directories are writable
         run: |
           chmod -R 777 storage bootstrap/cache
 
-      - name: Configure database
+      - name: Configure database and authentication
         run: |
           php artisan config:clear
-          php artisan migrate:fresh --seed --force
+          php artisan migrate:fresh --seed
+          php artisan passport:install  # If using Passport
+          php artisan breeze:install blade  # Ensure Breeze is installed
 
       - name: Wait for Laravel to boot
         run: sleep 3
