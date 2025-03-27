@@ -48,7 +48,6 @@ jobs:
         run: |
           php artisan config:clear
           php artisan migrate:fresh --seed
-          php artisan passport:install  # If using Passport
           php artisan breeze:install blade  # Ensure Breeze is installed
 
       - name: Wait for Laravel to boot
