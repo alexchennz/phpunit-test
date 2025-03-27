@@ -21,7 +21,7 @@ class ItemApiTest extends TestCase
     public function test_items_endpoint_returns_data():void
     {
         // Make a GET request to the API endpoint
-        $response = $this->getJson('/items');
+        $response = $this->getJson('/api/items');
 
         // Assert that the response status is 200 OK
         $response->assertStatus(200);

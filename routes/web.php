@@ -15,7 +15,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/items', [ItemController::class, 'index']);
+Route::get('/api/items', [ItemController::class, 'index']);
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
