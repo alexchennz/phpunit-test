@@ -36,16 +36,19 @@ RUN npm --version
 COPY . /var/www/html
 
 # Install Composer dependencies
-RUN composer install --no-interaction
+RUN composer install --no-progress --no-interaction --prefer-dist
 
 # Install npm dependencies
 RUN npm install
 
-# Generate key
-RUN php artisan key:generate --force
+# Generate key - do we need to do this???
+# RUN php artisan key:generate --force
 
 # Compile frontend assets
 RUN npm run build
+
+#Run PHPUnit tests
+RUN php artisan test
 
 # Configure Apache document root
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
