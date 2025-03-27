@@ -36,11 +36,20 @@ jobs:
           php artisan key:generate
           echo "DB_CONNECTION=sqlite" >> .env
           echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "CACHE_DRIVER=array" >> .env
+
+      - name: Ensure storage & cache directories are writable
+        run: |
+          chmod -R 777 storage bootstrap/cache
 
       - name: Configure database
         run: |
           php artisan config:clear
-          php artisan migrate --force
+          php artisan migrate:fresh --seed --force
+
+      - name: Wait for Laravel to boot
+        run: sleep 3
 
       - name: Run PHPUnit tests
         run: php artisan test
