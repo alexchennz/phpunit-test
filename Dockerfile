@@ -25,12 +25,22 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Upgrade npm to latest version
+RUN npm install -g npm@latest
+
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Install application dependencies
+# Install Composer dependencies
 RUN composer install --no-interaction
+
+# Install npm dependencies
 RUN npm install
+
+# Downgrade Vite if necessary
+RUN npm install vite@^5.0.0
+
+# Build frontend assets
 RUN npm run build
 
 # Configure Apache document root
