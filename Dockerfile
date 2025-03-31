@@ -1,6 +1,9 @@
 # Use official PHP image with PHP 8.2 and Apache
 FROM php:8.2-apache
 
+# Define the build argument
+ARG REPO_NAME
+
 # Set working directory
 WORKDIR /var/www/html
 
@@ -47,6 +50,24 @@ RUN npm install
 
 # Compile frontend assets
 RUN npm run build
+
+# Set up SQLite database
+RUN mkdir -p database
+RUN touch database/database.sqlite
+RUN cp .env.example .env
+RUN php artisan key:generate
+RUN echo "DB_CONNECTION=sqlite" >> .env
+RUN echo "DB_DATABASE=/app/${REPO_NAME}/${REPO_NAME}/database/database.sqlite" >> .env
+RUN echo "SESSION_DRIVER=array" >> .env
+RUN echo "CACHE_DRIVER=array" >> .env
+
+#Ensure storage & cache directories are writable
+RUN chmod -R 777 storage bootstrap/cache
+
+#Configure database and authentication
+RUN php artisan config:clear
+RUN php artisan migrate:fresh --seed
+RUN php artisan breeze:install react
 
 #Run PHPUnit tests
 RUN php artisan test

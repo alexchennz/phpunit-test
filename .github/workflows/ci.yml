@@ -78,6 +78,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            REPO_NAME=${{ github.event.repository.name }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/laravel-react-app:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/laravel-react-app:${{ github.sha }}
