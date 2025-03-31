@@ -81,5 +81,5 @@ jobs:
           build-args: |
             REPO_NAME=${{ github.event.repository.name }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/laravel-react-app:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/laravel-react-app:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/laravel-phpunit-test:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/laravel-phpunit-test:${{ github.sha }}
