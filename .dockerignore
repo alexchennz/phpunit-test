@@ -4,7 +4,6 @@ Dockerfile
 .dockerignore
 .git
 .gitignore
-.env.example
 .env
 vendor
 storage/*.key
