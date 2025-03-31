@@ -57,7 +57,7 @@ RUN touch database/database.sqlite
 RUN cp .env.example .env
 RUN php artisan key:generate
 RUN echo "DB_CONNECTION=sqlite" >> .env
-RUN echo "DB_DATABASE=/app/${REPO_NAME}/${REPO_NAME}/database/database.sqlite" >> .env
+RUN echo "DB_DATABASE=/var/www/html/database/database.sqlite" >> .env
 RUN echo "SESSION_DRIVER=array" >> .env
 RUN echo "CACHE_DRIVER=array" >> .env
 
