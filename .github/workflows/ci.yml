@@ -1,61 +1,102 @@
-name: Laravel CI/CD Pipeline
+name: Deploy Laravel React App to EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, pdo, sqlite3, zip, dom, curl, libxml, fileinfo
+        coverage: none
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, sqlite3
-          coverage: none
+    - name: Install Composer dependencies
+      run: composer install --no-progress --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-      - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
+    - name: Install Node.js dependencies
+      run: npm install
 
-      - name: Install Node.js dependencies
-        run: npm install
+    - name: Compile frontend assets
+      run: npm run build
+      
+    - name: Create deployment package
+      run: |
+        # Remove development files not needed in production
+        rm -rf node_modules tests .github
+        
+        # Create .env for production (will be updated on server with proper values)
+        cp .env.example .env.production
+        
+        # Create deployment archive
+        tar -czf deploy.tar.gz --exclude='.git' .
 
-      - name: Set up SQLite database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
-          cp .env.example .env
-          php artisan key:generate
-          echo "DB_CONNECTION=sqlite" >> .env
-          echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
-          echo "SESSION_DRIVER=array" >> .env
-          echo "CACHE_DRIVER=array" >> .env
-
-      - name: Ensure storage & cache directories are writable
-        run: |
-          chmod -R 777 storage bootstrap/cache
-
-      - name: Configure database and authentication
-        run: |
+    - name: Deploy to EC2
+      uses: easingthemes/ssh-deploy@main
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.EC2_HOST }}
+        REMOTE_USER: ${{ secrets.EC2_USERNAME }}
+        SOURCE: "deploy.tar.gz"
+        TARGET: "/tmp"
+        SCRIPT_AFTER: |
+          echo "Deploying Laravel application..."
+          
+          # Application directory
+          APP_DIR="/var/www/html/php-unittest"
+          
+          # Create directory if it doesn't exist
+          mkdir -p $APP_DIR
+          
+          # Extract archive to application directory
+          tar -xzf /tmp/deploy.tar.gz -C $APP_DIR
+          
+          # Set proper permissions
+          cd $APP_DIR
+          chown -R www-data:www-data .
+          chmod -R 775 storage bootstrap/cache
+          
+          # Configure environment
+          cp .env.production .env
+          
+          # Generate application key if not already set
+          php artisan key:generate --force
+          
+          # Run migrations with force flag (be careful in production)
+          # Remove --force if you want to review migrations before applying
+          php artisan migrate --force
+          
+          # Clear caches
           php artisan config:clear
-          php artisan migrate:fresh --seed
-          php artisan breeze:install react
-
-      - name: Compile frontend assets
-        run: npm run build
-
-      - name: Run PHPUnit tests
-        run: php artisan test
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
+          
+          # Optimize
+          php artisan optimize
+          
+          # Restart PHP-FPM and web server
+          sudo systemctl restart php8.2-fpm
+          sudo systemctl restart nginx
+          
+          # Clean up
+          rm /tmp/deploy.tar.gz
+          
+          echo "Deployment completed successfully"
 
   # docker:
   #   # needs: test
