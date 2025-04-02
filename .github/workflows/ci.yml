@@ -56,7 +56,12 @@ jobs:
 
       - name: Run PHPUnit tests
         run: php artisan test
+        
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
 
+    steps:
       - name: Generate deployment package
         run: zip -r deploy.zip ./
       
