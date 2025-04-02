@@ -10,52 +10,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - name: Generate deployment package
+        run: zip -r deploy.zip ./
+      
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v22
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, sqlite3
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-
-      - name: Install Node.js dependencies
-        run: npm install
-
-      - name: Set up SQLite database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
-          cp .env.example .env
-          php artisan key:generate
-          echo "DB_CONNECTION=sqlite" >> .env
-          echo "DB_DATABASE=/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/database/database.sqlite" >> .env
-          echo "SESSION_DRIVER=array" >> .env
-          echo "CACHE_DRIVER=array" >> .env
-
-      - name: Ensure storage & cache directories are writable
-        run: |
-          chmod -R 777 storage bootstrap/cache
-
-      - name: Configure database and authentication
-        run: |
-          php artisan config:clear
-          php artisan migrate:fresh --seed
-          php artisan breeze:install react
-
-      - name: Compile frontend assets
-        run: npm run build
-
-      - name: Run PHPUnit tests
-        run: php artisan test
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: "New PHPUnit Test"
+          environment_name: "NewPHPUnitTest-env"
+          existing_bucket_name: elasticbeanstalk-ap-southeast-2-875607159810
+          version_label: ${{ github.sha }}
+          region: ap-southeast-2
+          deployment_package: deploy.zip
 
   # docker:
   #   # needs: test
