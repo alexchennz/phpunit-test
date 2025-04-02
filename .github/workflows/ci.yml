@@ -21,7 +21,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: "New PHPUnit Test"
-          environment_name: "NewPHPUnitTest-env"
+          environment_name: "laravel"
           existing_bucket_name: elasticbeanstalk-ap-southeast-2-875607159810
           version_label: ${{ github.sha }}
           region: ap-southeast-2
